@@ -3,6 +3,7 @@ package com.mapyo.rxjavasamples
 import io.reactivex.Observable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.PublishSubject
 import org.junit.Test
 
 
@@ -67,8 +68,7 @@ class RxExampleUnitTest {
 
     @Test @Throws(Exception::class)
     fun sample3() {
-        val list = mutableListOf<String>()
-        (1..4).mapTo(list) { "hoge" + it }
+        val list = getStringMutableList(10)
 
         val unit = Observable.create<String> {
             emitter ->
@@ -98,5 +98,59 @@ class RxExampleUnitTest {
                     }
                 })
         Thread.sleep(1000L)
+    }
+
+    @Test @Throws(Exception::class)
+    fun sample4() {
+        val source = PublishSubject.create<String>()
+        var running = true
+
+        val list = getStringMutableList(3)
+
+        Observable.create<String> {
+            emitter ->
+            while (running) {
+                showMessage("ho1")
+                Thread.sleep(300L)
+                if (list.size > 0) {
+                    source.onNext(list.removeAt(0))
+                } else {
+                    emitter.onComplete()
+                }
+            }
+            emitter.onComplete()
+        }
+                .subscribeOn(Schedulers.computation())
+                .subscribe(object : DisposableObserver<String>() {
+                    override fun onError(e: Throwable?) {
+                        e?.printStackTrace()
+                    }
+
+                    override fun onNext(t: String?) {
+                        showMessage(t)
+                    }
+
+                    override fun onComplete() {
+                        showMessage("onComplete")
+                    }
+
+                })
+
+        println("start?")
+        Thread.sleep(3000L)
+        running = false
+        println("finish?")
+
+    }
+
+    private fun getStringMutableList(count: Int): MutableList<String> {
+        val list = mutableListOf<String>()
+        (1..count).mapTo(list) { "hoge" + it }
+        return list
+    }
+
+    private fun showMessage(message: String?) {
+        val threadName = Thread.currentThread().name
+        println(threadName + ":" + message)
     }
 }
