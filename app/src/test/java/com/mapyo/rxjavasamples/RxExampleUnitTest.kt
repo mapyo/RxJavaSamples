@@ -1,6 +1,7 @@
 package com.mapyo.rxjavasamples
 
-import org.junit.Assert.assertEquals
+import io.reactivex.Observable
+import io.reactivex.observers.DisposableObserver
 import org.junit.Test
 
 /**
@@ -10,7 +11,20 @@ import org.junit.Test
  */
 class RxExampleUnitTest {
     @Test @Throws(Exception::class)
-    fun addition_isCorrect() {
-        assertEquals(4, (2 + 2).toLong())
+    fun sample1() {
+        Observable.just("Cricket", "Football")
+                .subscribe(object: DisposableObserver<String>(){
+                    override fun onError(e: Throwable?) {
+                        e?.printStackTrace()
+                    }
+
+                    override fun onComplete() {
+                        println("onComplete")
+                    }
+
+                    override fun onNext(t: String?) {
+                        println(t)
+                    }
+                })
     }
 }
