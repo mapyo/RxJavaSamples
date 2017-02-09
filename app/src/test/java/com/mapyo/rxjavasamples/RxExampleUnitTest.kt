@@ -34,8 +34,16 @@ class RxExampleUnitTest {
     fun sample2() {
         val observableGreeting : Observable<String> = Observable.create {
             emitter ->
+            if (emitter.isDisposed) {
+                return@create
+            }
+
             emitter.onNext("Hello, World!")
             emitter.onNext("こんにちは、世界！")
+
+            if (!emitter.isDisposed) {
+                emitter.onComplete()
+            }
         }
 
         observableGreeting.subscribe(object : DisposableObserver<String>(){
