@@ -143,10 +143,70 @@ class RxExampleUnitTest {
 
     }
 
+    @Test @Throws(Exception::class)
+    fun sample5() {
+        var running = true
+        var observableCount = 0
+        val source = PublishSubject.create<String>()
+
+        Observable.create<String> {
+            emitter ->
+            observableCount++
+            val list = getStringMutableList(5)
+            while (running) {
+                Thread.sleep(100L)
+                if (list.size > 0) {
+                    val hoge = list.removeAt(0)
+                    showMessage("observableNumber" + observableCount + "hoge: " + hoge)
+                    // todo
+                    source.onNext(hoge)
+                } else {
+                    emitter.onComplete()
+                    break
+                }
+            }
+            emitter.onComplete()
+        }
+                .subscribeOn(Schedulers.computation())
+                .subscribe(getObserver("main"))
+
+        val sub1 = getObserver("sub1")
+        val sub2 = getObserver("sub2")
+
+        println("start?")
+        source.subscribe(sub1)
+        Thread.sleep(300L)
+        source.subscribe(sub2)
+
+        sub1.dispose()
+
+        Thread.sleep(1000L)
+        running = false
+        source.onComplete()
+        println("finish?")
+    }
+
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
         (1..count).mapTo(list) { "hoge" + it }
         return list
+    }
+
+    private fun getObserver(tag : String): DisposableObserver<String> {
+        return object : DisposableObserver<String>() {
+                    override fun onError(e: Throwable?) {
+                        e?.printStackTrace()
+                    }
+
+                    override fun onNext(t: String?) {
+                        showMessage(tag + ":" + t)
+                    }
+
+                    override fun onComplete() {
+                        showMessage(tag + ":" + "onComplete")
+                    }
+
+                }
     }
 
     private fun showMessage(message: String?) {
