@@ -145,25 +145,17 @@ class RxExampleUnitTest {
 
     @Test @Throws(Exception::class)
     fun sample5() {
-        var running = true
-        var observableCount = 0
+        var observableNumber = 0
         val source = PublishSubject.create<String>()
+        val maxCounter = 20
 
         Observable.create<String> {
             emitter ->
-            observableCount++
-            val list = getStringMutableList(5)
-            while (running) {
+            observableNumber++
+            for(counter in 1..maxCounter) {
                 Thread.sleep(100L)
-                if (list.size > 0) {
-                    val hoge = list.removeAt(0)
-                    showMessage("observableNumber" + observableCount + "hoge: " + hoge)
-                    // todo
-                    source.onNext(hoge)
-                } else {
-                    emitter.onComplete()
-                    break
-                }
+                showMessage("observableNumber" + observableNumber + "counter: " + counter)
+                source.onNext(counter.toString())
             }
             emitter.onComplete()
         }
@@ -176,12 +168,13 @@ class RxExampleUnitTest {
         println("start?")
         source.subscribe(sub1)
         Thread.sleep(300L)
-        source.subscribe(sub2)
-
-        sub1.dispose()
+        source
+                .filter {counter ->
+                    counter != "5"
+                }
+                .subscribe(sub2)
 
         Thread.sleep(1000L)
-        running = false
         source.onComplete()
         println("finish?")
     }
