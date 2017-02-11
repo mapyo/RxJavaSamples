@@ -1,13 +1,10 @@
 package com.mapyo.rxjavasamples
 
 import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import org.junit.Test
-
-
 
 
 /**
@@ -19,7 +16,7 @@ class RxExampleUnitTest {
     @Test @Throws(Exception::class)
     fun sample1() {
         Observable.just("Cricket", "Football")
-                .subscribe(object: DisposableObserver<String>(){
+                .subscribe(object : DisposableObserver<String>() {
                     override fun onError(e: Throwable?) {
                         e?.printStackTrace()
                     }
@@ -36,7 +33,7 @@ class RxExampleUnitTest {
 
     @Test @Throws(Exception::class)
     fun sample2() {
-        val observableGreeting : Observable<String> = Observable.create {
+        val observableGreeting: Observable<String> = Observable.create {
             emitter ->
             if (emitter.isDisposed) {
                 return@create
@@ -52,21 +49,21 @@ class RxExampleUnitTest {
 
         observableGreeting
                 .observeOn(Schedulers.computation())
-                .subscribe(object : DisposableObserver<String>(){
-            override fun onError(e: Throwable?) {
-                e?.printStackTrace()
-            }
+                .subscribe(object : DisposableObserver<String>() {
+                    override fun onError(e: Throwable?) {
+                        e?.printStackTrace()
+                    }
 
-            override fun onComplete() {
-                val threadName = Thread.currentThread().name
-                println(threadName + "完了しました")
-            }
+                    override fun onComplete() {
+                        val threadName = Thread.currentThread().name
+                        println(threadName + "完了しました")
+                    }
 
-            override fun onNext(t: String?) {
-                val threadName = Thread.currentThread().name
-                println(threadName + ":" + t)
-            }
-        })
+                    override fun onNext(t: String?) {
+                        val threadName = Thread.currentThread().name
+                        println(threadName + ":" + t)
+                    }
+                })
     }
 
     @Test @Throws(Exception::class)
@@ -155,7 +152,7 @@ class RxExampleUnitTest {
         Observable.create<String> {
             emitter ->
             observableNumber++
-            for(counter in 1..maxCounter) {
+            for (counter in 1..maxCounter) {
                 Thread.sleep(100L)
                 showMessage("observableNumber" + observableNumber + "counter: " + counter)
                 source.onNext(counter.toString())
@@ -172,7 +169,7 @@ class RxExampleUnitTest {
         source.subscribe(sub1)
         Thread.sleep(300L)
         source
-                .filter {counter ->
+                .filter { counter ->
                     counter != "5"
                 }
                 .subscribe(sub2)
@@ -189,27 +186,60 @@ class RxExampleUnitTest {
                 .subscribe(::println)
     }
 
+    @Test @Throws(Exception::class)
+    fun sample7() {
+        val list = getStringMutableList(10)
+        val looper = Observable.create<String> {
+            source ->
+
+            try {
+                Thread.sleep(100L)
+            } catch (e: Exception) {
+                source.onError(e)
+            }
+
+            if (list.size > 0) {
+                val message = list.removeAt(0)
+                showMessage(message)
+                source.onNext(message)
+            } else {
+                source.onError(throw RuntimeException("no....."))
+            }
+            source.onComplete()
+        }.subscribeOn(Schedulers.computation())
+                .repeat(10).subscribe({
+            showMessage("onNext")
+        }, {
+            showMessage("onError")
+        })
+
+        showMessage("start")
+        Thread.sleep(500L)
+        showMessage("go finish")
+        looper.dispose()
+        showMessage("finished!!!")
+    }
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
         (1..count).mapTo(list) { "hoge" + it }
         return list
     }
 
-    private fun getObserver(tag : String): DisposableObserver<String> {
+    private fun getObserver(tag: String): DisposableObserver<String> {
         return object : DisposableObserver<String>() {
-                    override fun onError(e: Throwable?) {
-                        e?.printStackTrace()
-                    }
+            override fun onError(e: Throwable?) {
+                e?.printStackTrace()
+            }
 
-                    override fun onNext(t: String?) {
-                        showMessage(tag + ":" + t)
-                    }
+            override fun onNext(t: String?) {
+                showMessage(tag + ":" + t)
+            }
 
-                    override fun onComplete() {
-                        showMessage(tag + ":" + "onComplete")
-                    }
+            override fun onComplete() {
+                showMessage(tag + ":" + "onComplete")
+            }
 
-                }
+        }
     }
 
     private fun showMessage(message: String?) {
