@@ -1,10 +1,13 @@
 package com.mapyo.rxjavasamples
 
 import io.reactivex.Observable
+import io.reactivex.ObservableOnSubscribe
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import org.junit.Test
+
+
 
 
 /**
@@ -177,6 +180,13 @@ class RxExampleUnitTest {
         Thread.sleep(1000L)
         source.onComplete()
         println("finish?")
+    }
+
+    @Test @Throws(Exception::class)
+    fun sample6() {
+        val list = listOf("foo", "bar", "boo")
+        Observable.fromIterable(list)
+                .subscribe(::println)
     }
 
     private fun getStringMutableList(count: Int): MutableList<String> {
