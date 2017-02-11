@@ -1,10 +1,17 @@
 package com.mapyo.rxjavasamples
 
+import io.reactivex.BackpressureStrategy
+import io.reactivex.Flowable
+import io.reactivex.FlowableEmitter
 import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import org.junit.Test
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -219,6 +226,50 @@ class RxExampleUnitTest {
         looper.dispose()
         showMessage("finished!!!")
     }
+
+    @Test @Throws(Exception::class)
+    fun sample8_flowable() {
+
+        val flowable = Flowable.create<String>({
+            emitter: FlowableEmitter<String> ->
+            for (i in 1..10) {
+                if (emitter.isCancelled) {
+                    return@create
+                }
+
+                emitter.onNext(i.toString())
+            }
+
+            emitter.onComplete()
+        }, BackpressureStrategy.BUFFER)
+
+        flowable.observeOn(Schedulers.computation())
+                .subscribe(object : Subscriber<String> {
+                    private lateinit var subscription: Subscription
+
+                    override fun onSubscribe(subscription: Subscription) {
+                        this.subscription = subscription
+                        this.subscription.request(1)
+                    }
+
+                    override fun onNext(message: String) {
+                        showMessage(message)
+                        subscription.request(1)
+                    }
+
+                    override fun onComplete() {
+                        showMessage("完了しました")
+                    }
+
+                    override fun onError(t: Throwable?) {
+                    }
+
+                })
+
+        Thread.sleep(500)
+    }
+
+
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
         (1..count).mapTo(list) { "hoge" + it }
@@ -240,6 +291,29 @@ class RxExampleUnitTest {
             }
 
         }
+    }
+
+    private fun getPublishTimer(list: MutableList<String>, publish: PublishSubject<String>): Disposable {
+        return Observable.interval(100, TimeUnit.MILLISECONDS)
+                .map {
+                    if (list.size > 0) {
+                        val message = list.removeAt(0)
+                        showMessage(message)
+                        message
+                    } else {
+                        throw RuntimeException("no.....")
+                    }
+                }
+                .subscribe({
+                    message ->
+                    showMessage("Timer onNext: " + message)
+                    publish.onNext(message)
+                }, {
+                    throwable ->
+                    showMessage("Timer onError")
+                    throwable.printStackTrace()
+                    publish.onError(throwable)
+                })
     }
 
     private fun showMessage(message: String?) {
