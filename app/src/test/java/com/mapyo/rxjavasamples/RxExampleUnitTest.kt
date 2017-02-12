@@ -334,6 +334,21 @@ class RxExampleUnitTest {
         Thread.sleep(1000)
     }
 
+    @Test @Throws(Exception::class)
+    fun sample10() {
+        // 受け取ったデータのflowableが終わってから、次の処理を実行する
+        Flowable.just("a", "b", "c")
+                .concatMap {
+                    Flowable.just(it)
+                            .delay(100, TimeUnit.MILLISECONDS)
+                }
+                .subscribe {
+                    showMessage(it)
+                }
+
+        Thread.sleep(1000)
+    }
+
 
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
