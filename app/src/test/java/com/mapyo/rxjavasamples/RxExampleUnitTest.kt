@@ -5,6 +5,7 @@ import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
+import io.reactivex.functions.BiFunction
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
@@ -269,6 +270,56 @@ class RxExampleUnitTest {
         Thread.sleep(500)
     }
 
+    @Test @Throws(Exception::class)
+    fun sample8() {
+        val publisher = PublishSubject.create<String>()
+
+        val flowable = Flowable.fromIterable<String>(getStringMutableList(3))
+
+        // 送信
+        flowable.observeOn(Schedulers.computation())
+                .subscribe(object : Subscriber<String> {
+                    private lateinit var subscription: Subscription
+
+                    override fun onSubscribe(subscription: Subscription) {
+                        this.subscription = subscription
+                        this.subscription.request(1)
+                    }
+
+                    override fun onNext(message: String) {
+                        showMessage(message)
+                        val sendObservable = Observable.fromArray(message)
+                                .doOnNext {
+                                    showMessage("doOnNext")
+                                }
+
+                        // 待ち受ける
+                        Observable.zip(sendObservable, publisher,
+                                BiFunction<String, String, String> {
+                                    send, receive ->
+                                    val message = send + ":" + receive
+                                    showMessage(message)
+                                    subscription.request(1)
+                                    message
+                                }).subscribe()
+
+                        // 送信する
+                        publisher.onNext("receive: " + System.currentTimeMillis())
+                    }
+
+                    override fun onComplete() {
+                        showMessage("完了しました")
+                    }
+
+                    override fun onError(t: Throwable?) {
+                        t?.printStackTrace()
+                    }
+
+                })
+
+        Thread.sleep(1000)
+    }
+
 
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
@@ -321,3 +372,4 @@ class RxExampleUnitTest {
         println(threadName + ":" + message)
     }
 }
+
