@@ -320,6 +320,20 @@ class RxExampleUnitTest {
         Thread.sleep(1000)
     }
 
+    @Test @Throws(Exception::class)
+    fun sample9() {
+        Flowable.just("a", "b", "c")
+                .flatMap {
+                    Flowable.just(it)
+                            .delay(100, TimeUnit.MILLISECONDS)
+                }
+                .subscribe {
+                    showMessage(it)
+                }
+
+        Thread.sleep(1000)
+    }
+
 
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
