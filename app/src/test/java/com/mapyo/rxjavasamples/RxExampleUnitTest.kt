@@ -349,6 +349,23 @@ class RxExampleUnitTest {
         Thread.sleep(1000)
     }
 
+    @Test @Throws(Exception::class)
+    fun sample11() {
+        Observable.just(1, 2, 3, 4)
+                .map{
+                    showMessage("multiplication" + it.toString())
+                    it * 2
+                }
+                .map {
+                    showMessage("addition" + it.toString())
+                    it + 5
+                }
+                .subscribe {
+                    showMessage(it.toString())
+                }
+
+        Thread.sleep(500)
+    }
 
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
