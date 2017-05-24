@@ -352,7 +352,7 @@ class RxExampleUnitTest {
     @Test @Throws(Exception::class)
     fun sample11() {
         Observable.just(1, 2, 3, 4)
-                .map{
+                .map {
                     showMessage("multiplication" + it.toString())
                     it * 2
                 }
@@ -365,6 +365,22 @@ class RxExampleUnitTest {
                 }
 
         Thread.sleep(500)
+    }
+
+    @Test @Throws(Exception::class)
+    fun sample_doAfterNext() {
+        val publishSubject = PublishSubject.create<Int>()
+
+        Observable.just(1)
+                .doAfterNext {
+                    println("doAfterNext")
+                    publishSubject.onNext(it * 2)
+                }
+                .flatMap {
+                    println("receive start")
+                    publishSubject
+                }
+                .subscribe({ println(it) })
     }
 
     private fun getStringMutableList(count: Int): MutableList<String> {
