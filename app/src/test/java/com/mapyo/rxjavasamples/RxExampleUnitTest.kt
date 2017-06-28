@@ -4,7 +4,6 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
 import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
@@ -404,29 +403,6 @@ class RxExampleUnitTest {
             }
 
         }
-    }
-
-    private fun getPublishTimer(list: MutableList<String>, publish: PublishSubject<String>): Disposable {
-        return Observable.interval(100, TimeUnit.MILLISECONDS)
-                .map {
-                    if (list.size > 0) {
-                        val message = list.removeAt(0)
-                        showMessage(message)
-                        message
-                    } else {
-                        throw RuntimeException("no.....")
-                    }
-                }
-                .subscribe({
-                    message ->
-                    showMessage("Timer onNext: " + message)
-                    publish.onNext(message)
-                }, {
-                    throwable ->
-                    showMessage("Timer onError")
-                    throwable.printStackTrace()
-                    publish.onError(throwable)
-                })
     }
 
     private fun showMessage(message: String?) {
