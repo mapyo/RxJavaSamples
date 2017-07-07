@@ -382,6 +382,28 @@ class RxExampleUnitTest {
                 .subscribe({ println(it) })
     }
 
+    @Test @Throws(Exception::class)
+    fun sample_retryWhen() {
+        Observable.create<Int> { emitter ->
+            emitter.onNext(1)
+            emitter.onNext(2)
+            emitter.onError(HogeException())
+            emitter.onComplete()
+        }.retryWhen { observable ->
+            observable.flatMap { e ->
+                val exception = if (e is HogeException) FooException() else e
+                Observable.error<Int>(exception)
+            }
+        }.subscribe({
+            println(it)
+        }, { e ->
+            println(e.javaClass.simpleName)
+        }, {})
+    }
+
+    class HogeException : RuntimeException()
+    class FooException : RuntimeException()
+
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
         (1..count).mapTo(list) { "hoge" + it }
