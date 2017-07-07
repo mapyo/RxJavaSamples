@@ -404,6 +404,21 @@ class RxExampleUnitTest {
     class HogeException : RuntimeException()
     class FooException : RuntimeException()
 
+    @Test @Throws(Exception::class)
+    fun sample_sample() {
+        val delayUploadNotify = PublishSubject.create<Int>()
+
+        delayUploadNotify.sample(1, TimeUnit.SECONDS)
+                .subscribe { showMessage(it.toString()) }
+
+        (1..10).map {
+            delayUploadNotify.onNext(it)
+            Thread.sleep(300)
+        }
+
+        Thread.sleep(1000)
+    }
+
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
         (1..count).mapTo(list) { "hoge" + it }
