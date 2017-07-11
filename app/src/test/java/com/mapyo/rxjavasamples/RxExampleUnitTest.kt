@@ -424,9 +424,7 @@ class RxExampleUnitTest {
                     Completable.fromAction {
                         showMessage("completableTest: " + number)
                         Thread.sleep(300)
-                    }
-                            .toSingleDefault(number)
-                            .toObservable()
+                    }.andThen(Observable.just(number))
                 }
                 .doOnNext {
                     showMessage("doOnNext")
