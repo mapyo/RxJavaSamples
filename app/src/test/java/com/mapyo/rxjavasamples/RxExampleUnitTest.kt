@@ -421,13 +421,12 @@ class RxExampleUnitTest {
 
         Observable.just(1, 2, 3)
                 .flatMap { number ->
-                    completableTest(number)
-                            .toObservable<Int>()
-                            .startWith(number)
-
-                }
-                .map {
-                    showMessage("map")
+                    Completable.fromAction {
+                        showMessage("completableTest: " + number)
+                        Thread.sleep(300)
+                    }
+                            .toSingleDefault(number)
+                            .toObservable()
                 }
                 .doOnNext {
                     showMessage("doOnNext")
@@ -437,22 +436,68 @@ class RxExampleUnitTest {
                 }
                 .subscribe({
                     showMessage("onNext: " + it.toString())
-                }, { it.printStackTrace()
+                }, {
+                    it.printStackTrace()
                     showMessage("hoge")
                 }, {
                     showMessage("onComplete")
                 })
+    }
 
-        Thread.sleep(10000)
-        showMessage("finish")
+    @Test @Throws(Exception::class)
+    fun sample_completable_to_observable2() {
 
+        Observable.just(1, 2, 3)
+                .flatMap { number ->
+                    Completable.fromAction {
+                        showMessage("completableTest: " + number)
+                        Thread.sleep(300)
+                    }
+                            .toObservable<Int>()
+                            .single(number)
+                            .toObservable()
+                }
+                .doOnNext {
+                    showMessage("doOnNext")
+                }
+                .doOnComplete {
+                    showMessage("doOnComplete")
+                }
+                .subscribe({
+                    showMessage("onNext: " + it.toString())
+                }, {
+                    it.printStackTrace()
+                    showMessage("hoge")
+                }, {
+                    showMessage("onComplete")
+                })
     }
 
     private fun completableTest(task: Int) =
-        Completable.fromAction {
-            showMessage("completableTest: " + task.toString())
-            Thread.sleep(300)
-        }
+            Completable.fromAction {
+                showMessage("completableTest: " + task.toString())
+                Thread.sleep(300)
+            }
+
+    @Test @Throws(Exception::class)
+    fun sample_single_reduce() {
+        val single1 = Single.just(1)
+        val single2 = Single.just(2)
+        val single3 = Single.just(3)
+        val single4 = Single.just(4)
+
+
+        Single.merge(single1, single2, single3, single4)
+                .reduce(0, { t1: Int, t2: Int ->
+                    t1 + t2
+                })
+                .subscribe({
+                    showMessage(it.toString())
+                }, {
+                    it.printStackTrace()
+                })
+
+    }
 
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
