@@ -1,9 +1,6 @@
 package com.mapyo.rxjavasamples
 
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Flowable
-import io.reactivex.FlowableEmitter
-import io.reactivex.Observable
+import io.reactivex.*
 import io.reactivex.functions.BiFunction
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
@@ -418,6 +415,44 @@ class RxExampleUnitTest {
 
         Thread.sleep(1000)
     }
+
+    @Test @Throws(Exception::class)
+    fun sample_completable_to_observable() {
+
+        Observable.just(1, 2, 3)
+                .flatMap { number ->
+                    completableTest(number)
+                            .toObservable<Int>()
+                            .startWith(number)
+
+                }
+                .map {
+                    showMessage("map")
+                }
+                .doOnNext {
+                    showMessage("doOnNext")
+                }
+                .doOnComplete {
+                    showMessage("doOnComplete")
+                }
+                .subscribe({
+                    showMessage("onNext: " + it.toString())
+                }, { it.printStackTrace()
+                    showMessage("hoge")
+                }, {
+                    showMessage("onComplete")
+                })
+
+        Thread.sleep(10000)
+        showMessage("finish")
+
+    }
+
+    private fun completableTest(task: Int) =
+        Completable.fromAction {
+            showMessage("completableTest: " + task.toString())
+            Thread.sleep(300)
+        }
 
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
