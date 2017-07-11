@@ -471,12 +471,6 @@ class RxExampleUnitTest {
                 })
     }
 
-    private fun completableTest(task: Int) =
-            Completable.fromAction {
-                showMessage("completableTest: " + task.toString())
-                Thread.sleep(300)
-            }
-
     @Test @Throws(Exception::class)
     fun sample_single_reduce() {
         val single1 = Single.just(1)
