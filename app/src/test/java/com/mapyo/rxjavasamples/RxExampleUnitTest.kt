@@ -491,6 +491,26 @@ class RxExampleUnitTest {
 
     }
 
+    @Test @Throws(Exception::class)
+    fun sample_maybe_switchIfEmpty() {
+        Maybe.create<Int> { emitter ->
+            emitter.onComplete()
+//            emitter.onSuccess(3)
+        }.switchIfEmpty { emitter ->
+            showMessage("switchIfEmpty")
+
+            // onCompleteが呼ばれた時に通る
+            emitter.onSuccess(2)
+        }.subscribe({
+            showMessage("onSuccess: $it")
+        }, {
+            showMessage("onError")
+        }, {
+            showMessage("onComplete")
+        })
+
+    }
+
     private fun getStringMutableList(count: Int): MutableList<String> {
         val list = mutableListOf<String>()
         (1..count).mapTo(list) { "hoge" + it }
