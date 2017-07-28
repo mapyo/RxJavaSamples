@@ -1,6 +1,7 @@
 package com.mapyo.rxjavasamples
 
 import io.reactivex.*
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
@@ -509,6 +510,30 @@ class RxExampleUnitTest {
             showMessage("onComplete")
         })
 
+    }
+
+    @Test @Throws(Exception::class)
+    fun sample_publish_disposable() {
+        val subject = PublishSubject.create<Int>()
+
+        var compositeDisposable = CompositeDisposable()
+
+        subject.subscribe ({ it ->
+            showMessage(it.toString())
+        }).let { compositeDisposable.add(it) }
+
+        subject.onNext(1)
+
+        compositeDisposable.dispose()
+        compositeDisposable = CompositeDisposable()
+
+        subject.onNext(2)
+
+        subject.subscribe ({ it ->
+            showMessage(it.toString())
+        }).let { compositeDisposable.add(it) }
+
+        subject.onNext(3)
     }
 
     private fun getStringMutableList(count: Int): MutableList<String> {
